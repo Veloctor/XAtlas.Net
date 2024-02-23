@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XAtlas.NetStandard21\XAtlas.NetStandard21.csproj" />
+  </ItemGroup>
+	
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<!-- Copy xatlas native library and debug symbol to output path -->
+		<Copy SourceFiles="$(SolutionDir)NativeBin\xatlas.dll; $(SolutionDir)NativeBin\xatlas.pdb" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+	</Target>
+
+</Project>

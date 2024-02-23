@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<RootNamespace>XAtlas.Net</RootNamespace>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<LangVersion>10.0</LangVersion>
+	</PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<!-- Copy xatlas native library and debug symbol to output path -->
+		<Copy SourceFiles="$(SolutionDir)NativeBin\xatlas.dll; $(SolutionDir)NativeBin\xatlas.pdb" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+	</Target>
+</Project>

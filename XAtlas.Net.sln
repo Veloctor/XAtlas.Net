@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34616.47
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAtlas.NetStandard21", "XAtlas.NetStandard21\XAtlas.NetStandard21.csproj", "{F59F86A2-7181-4168-8FA7-4CDD137A949E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAtlas.Test.Net8", "XAtlas.Test.Net8\XAtlas.Test.Net8.csproj", "{2282F640-2177-4E09-8255-F975AF09EFEC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F59F86A2-7181-4168-8FA7-4CDD137A949E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F59F86A2-7181-4168-8FA7-4CDD137A949E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F59F86A2-7181-4168-8FA7-4CDD137A949E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F59F86A2-7181-4168-8FA7-4CDD137A949E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2282F640-2177-4E09-8255-F975AF09EFEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2282F640-2177-4E09-8255-F975AF09EFEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2282F640-2177-4E09-8255-F975AF09EFEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2282F640-2177-4E09-8255-F975AF09EFEC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {90F44822-ECF0-4437-B091-F9EAFC7F55AA}
+	EndGlobalSection
+EndGlobal
