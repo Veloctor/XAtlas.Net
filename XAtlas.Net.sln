@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAtlas.NetStandard21", "XAtlas.NetStandard21\XAtlas.NetStandard21.csproj", "{F59F86A2-7181-4168-8FA7-4CDD137A949E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XAtlas.NetStandard21", "XAtlas.NetStandard21\XAtlas.NetStandard21.csproj", "{F59F86A2-7181-4168-8FA7-4CDD137A949E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAtlas.Test.Net8", "XAtlas.Test.Net8\XAtlas.Test.Net8.csproj", "{2282F640-2177-4E09-8255-F975AF09EFEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XAtlas.Test.Net8", "XAtlas.Test.Net8\XAtlas.Test.Net8.csproj", "{2282F640-2177-4E09-8255-F975AF09EFEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjParser", "..\Github\ObjParser\ObjParser\ObjParser.csproj", "{04AA9B94-B460-4E73-BAF0-0154494BFE82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{2282F640-2177-4E09-8255-F975AF09EFEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2282F640-2177-4E09-8255-F975AF09EFEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2282F640-2177-4E09-8255-F975AF09EFEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04AA9B94-B460-4E73-BAF0-0154494BFE82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04AA9B94-B460-4E73-BAF0-0154494BFE82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04AA9B94-B460-4E73-BAF0-0154494BFE82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04AA9B94-B460-4E73-BAF0-0154494BFE82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

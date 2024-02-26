@@ -13,7 +13,7 @@ namespace XAtlas.Net.Interop
 
 		public BOOL(bool value) => this.value = (byte)(value ? 1 : 0);
 
-		public static implicit operator BOOL(bool value) => new BOOL(value);
+		public static implicit operator BOOL(bool value) => new(value);
 		public static implicit operator bool(BOOL value) => value.value != 0;
 	}
 }

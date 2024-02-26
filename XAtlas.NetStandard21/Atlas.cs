@@ -44,7 +44,7 @@ namespace XAtlas.Net
 
 	public class Atlas : NativeObject
 	{
-		public Atlas() : base(XAtlasAPI.xatlasCreate()) { }
+		public Atlas() : base(XAtlasAPI.Create()) { }
 
 		public struct MemLayout
 		{
@@ -63,36 +63,36 @@ namespace XAtlas.Net
 		public Ptr<MemLayout> Data => new(Handle);
 
 		public AddMeshError AddMesh(in MeshDecl meshDecl, uint meshCountHint = 0) =>
-			XAtlasAPI.xatlasAddMesh(Handle, meshDecl, meshCountHint);
+			XAtlasAPI.AddMesh(Handle, meshDecl, meshCountHint);
 
 		public void AddMeshJoin() =>
-			XAtlasAPI.xatlasAddMeshJoin(Handle);
+			XAtlasAPI.AddMeshJoin(Handle);
 
 		public AddMeshError AddUvMesh(in UvMeshDecl decl) =>
-			XAtlasAPI.xatlasAddUvMesh(Handle, decl);
+			XAtlasAPI.AddUvMesh(Handle, decl);
 
 		/// <summary>
 		/// Call after all AddMesh calls. Can be called multiple times to recompute charts with different options.
 		/// </summary>
 		public void ComputeCharts(in ChartOptions chartOptions) =>
-			XAtlasAPI.xatlasComputeCharts(Handle, chartOptions);
+			XAtlasAPI.ComputeCharts(Handle, chartOptions);
 
 		/// <summary> Call after ComputeCharts. Can be called multiple times to re-pack charts with different options. </summary>
 		public void PackCharts(in PackOptions packOptions) =>
-			XAtlasAPI.xatlasPackCharts(Handle, packOptions);
+			XAtlasAPI.PackCharts(Handle, packOptions);
 
 		/// <summary>
 		/// Equivalent to calling ComputeCharts and PackCharts in sequence. Can be called multiple times to regenerate with different options.
 		/// </summary>
 		public void Generate(in ChartOptions chartOptions, in PackOptions packOptions) =>
-			XAtlasAPI.xatlasGenerate(Handle, chartOptions, packOptions);
+			XAtlasAPI.Generate(Handle, chartOptions, packOptions);
 
 		/// <summary>
 		/// May be called from any thread. Return false to cancel.
 		/// </summary>
-		public void SetProgressCallback(xatlasProgressFunc progressFunc, IntPtr progressUserData) =>
-			XAtlasAPI.xatlasSetProgressCallback(Handle, progressFunc, progressUserData);
+		public void SetProgressCallback(ProgressFunc progressFunc, IntPtr progressUserData = default) =>
+			XAtlasAPI.SetProgressCallback(Handle, progressFunc, progressUserData);
 
-		protected override void OnDestroyNativeObj(IntPtr nativeObjPtr) => XAtlasAPI.xatlasDestroy(nativeObjPtr);
+		protected override void OnDestroyNativeObj(IntPtr nativeObjPtr) => XAtlasAPI.Destroy(nativeObjPtr);
 	}
 }

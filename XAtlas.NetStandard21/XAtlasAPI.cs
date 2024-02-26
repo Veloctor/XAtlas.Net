@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Velctor.Utils;
 using static System.Runtime.InteropServices.CallingConvention;
+using static XAtlas.Net.Interop.PrintFormat;
 
 namespace XAtlas.Net.Interop;
 
@@ -24,18 +26,37 @@ public struct MeshDecl
 	}
 
 	public Ptr<float> vertexPositionData = null;
+	/// <summary>  Optional </summary>
 	public Ptr<float> vertexNormalData = null;
+	/// <summary> optional. The input UVs are provided as a hint to the chart generator. </summary>
 	public Ptr<float> vertexUvData = null;
+	/// <summary>  Optional </summary>
 	public Ptr<int> indexData = null;
+	/// <summary>
+	/// Optional. Must be faceCount in length.
+	/// Don't atlas faces set to true. Ignored faces still exist in the output meshes, Vertex uv is set to (0, 0) and Vertex atlasIndex to -1.
+	/// </summary>
 	public Ptr<BOOL> faceIgnoreData = null;
+	/// <summary>
+	/// Optional. Must be faceCount in length.
+	/// Only faces with the same material will be assigned to the same chart.
+	/// </summary>
 	public Ptr<uint> faceMaterialData = null;
+	/// <summary>
+	/// Optional. Must be faceCount in length.
+	/// Polygon / n-gon support. Faces are assumed to be triangles if this is null.
+	/// </summary>
 	public Ptr<byte> faceVertexCount = null;
 	public uint vertexCount = 0;
-	public uint vertexPositionStride = 0;
+	public uint vertexPositionStride = 12;
+	/// <summary> Optional </summary>
 	public uint vertexNormalStride = 0;
+	/// <summary> Optional </summary>
 	public uint vertexUvStride = 0;
 	public uint indexCount = 0;
+	/// <summary> Optional. Add this offset to all indices. </summary>
 	public int indexOffset = 0;
+	/// <summary> Optional if faceVertexCount is null. Otherwise assumed to be indexCount / 3.</summary>
 	public uint faceCount = 0;
 	public IndexFormat indexFormat = 0;
 	/// <summary>  Vertex positions within epsilon distance of each other are considered colocal.  </summary>
@@ -61,15 +82,15 @@ public struct UvMeshDecl
 }
 
 [UnmanagedFunctionPointer(Cdecl)]
-public delegate void xatlasParameterizeFunc(Ptr<float> positions, Ptr<float> texcoords, uint vertexCount, Ptr<uint> indices, uint indexCount);
+public delegate void ParameterizeFunc(Ptr<float> positions, Ptr<float> texcoords, uint vertexCount, Ptr<uint> indices, uint indexCount);
 
 public struct ChartOptions
 {
 	public ChartOptions() { }
 
 	public static ChartOptions Default => new();
-
-	public IntPtr paramFunc = IntPtr.Zero;//xatlasParameterizeFunc
+	/// <summary> <see cref="Marshal.GetFunctionPointerForDelegate{ParameterizeFunc}"/> TDelegate = ParameterizeFunc </summary>
+	public IntPtr paramFunc = IntPtr.Zero;
 	public float maxChartArea = 0;
 	public float maxBoundaryLength = 0;
 	public float normalDeviationWeight = 2;
@@ -156,69 +177,69 @@ public enum ProgressCategory
 
 
 [UnmanagedFunctionPointer(Cdecl)]
-public delegate BOOL xatlasProgressFunc(ProgressCategory category, int progress, IntPtr userData);
+public delegate BOOL ProgressFunc(ProgressCategory category, int progress, IntPtr userData);
 
 [UnmanagedFunctionPointer(Cdecl)]
-public delegate IntPtr xatlasReallocFunc(IntPtr addr, IntPtr size);
+public delegate IntPtr ReallocFunc(IntPtr addr, IntPtr size);
 
 [UnmanagedFunctionPointer(Cdecl)]
-public delegate void xatlasFreeFunc(IntPtr addr);
+public delegate void FreeFunc(IntPtr addr);
 
 [UnmanagedFunctionPointer(Cdecl)]
-public delegate int xatlasPrintFunc([MarshalAs(UnmanagedType.LPStr)] string format, IntPtr args);
+public delegate int PrintFunc(IntPtr PStr_format, byte args);
 
 public static class XAtlasAPI
 {
 	const string DLL = "xatlas.dll";
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern IntPtr xatlasCreate();
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasCreate")]
+	internal static extern IntPtr Create();
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern void xatlasDestroy(IntPtr atlas);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasDestroy")]
+	internal static extern void Destroy(IntPtr atlas);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern AddMeshError xatlasAddMesh(IntPtr atlas, in MeshDecl meshDecl, uint meshCountHint);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasAddMesh")]
+	internal static extern AddMeshError AddMesh(IntPtr atlas, in MeshDecl meshDecl, uint meshCountHint);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern void xatlasAddMeshJoin(IntPtr atlas);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasAddMeshJoin")]
+	internal static extern void AddMeshJoin(IntPtr atlas);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern AddMeshError xatlasAddUvMesh(IntPtr atlas, in UvMeshDecl decl);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasAddUvMesh")]
+	internal static extern AddMeshError AddUvMesh(IntPtr atlas, in UvMeshDecl decl);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern void xatlasComputeCharts(IntPtr atlas, in ChartOptions chartOptions);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasComputeCharts")]
+	internal static extern void ComputeCharts(IntPtr atlas, in ChartOptions chartOptions);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern void xatlasPackCharts(IntPtr atlas, in PackOptions packOptions);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasPackCharts")]
+	internal static extern void PackCharts(IntPtr atlas, in PackOptions packOptions);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern void xatlasGenerate(IntPtr atlas,in ChartOptions chartOptions, in PackOptions packOptions);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasGenerate")]
+	internal static extern void Generate(IntPtr atlas,in ChartOptions chartOptions, in PackOptions packOptions);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	internal static extern void xatlasSetProgressCallback(IntPtr atlas, xatlasProgressFunc progressFunc, IntPtr progressUserData);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasSetProgressCallback")]
+	internal static extern void SetProgressCallback(IntPtr atlas, ProgressFunc progressFunc, IntPtr progressUserData);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	public static extern void xatlasSetAlloc(xatlasReallocFunc reallocFunc, xatlasFreeFunc freeFunc);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasSetAlloc")]
+	public static extern void SetAlloc(ReallocFunc reallocFunc, FreeFunc freeFunc);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	public static extern void xatlasSetPrint(xatlasPrintFunc print, BOOL verbose);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasSetPrint")]
+	public static extern void SetPrint(PrintFunc print, BOOL verbose);
 
-	[DllImport(DLL, CallingConvention = Cdecl, CharSet = CharSet.Ansi)]
-	public static extern string xatlasAddMeshErrorString(AddMeshError error);
+	[DllImport(DLL, CallingConvention = Cdecl, CharSet = CharSet.Ansi, EntryPoint = "xatlasAddMeshErrorString")]
+	public static extern string AddMeshErrorString(AddMeshError error);
 
-	[DllImport(DLL, CallingConvention = Cdecl, CharSet = CharSet.Ansi)]
-	public static extern string xatlasProgressCategoryString(ProgressCategory category);
+	[DllImport(DLL, CallingConvention = Cdecl, CharSet = CharSet.Ansi, EntryPoint = "xatlasProgressCategoryString")]
+	public static extern string ProgressCategoryString(ProgressCategory category);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	public static extern void xatlasMeshDeclInit(ref MeshDecl meshDecl);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasMeshDeclInit")]
+	public static extern void MeshDeclInit(ref MeshDecl meshDecl);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	public static extern void xatlasUvMeshDeclInit(ref UvMeshDecl uvMeshDecl);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasUvMeshDeclInit")]
+	public static extern void UvMeshDeclInit(ref UvMeshDecl uvMeshDecl);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	public static extern void xatlasChartOptionsInit(ref ChartOptions chartOptions);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasChartOptionsInit")]
+	public static extern void ChartOptionsInit(ref ChartOptions chartOptions);
 
-	[DllImport(DLL, CallingConvention = Cdecl)]
-	public static extern void xatlasPackOptionsInit(ref PackOptions packOptions);
+	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasPackOptionsInit")]
+	public static extern void PackOptionsInit(ref PackOptions packOptions);
 }
