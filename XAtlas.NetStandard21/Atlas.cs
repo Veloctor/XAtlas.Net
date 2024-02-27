@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Velctor.Utils;
 using XAtlas.Net.Interop;
 
@@ -27,8 +28,7 @@ namespace XAtlas.Net
 	{
 		public int atlasIndex; // Sub-atlas index. -1 if the vertex doesn't exist in any atlas.
 		public int chartIndex; // -1 if the vertex doesn't exist in any chart.
-		public float uvx; // Not normalized - values are in Atlas width and height range.
-		public float uvy; // Not normalized - values are in Atlas width and height range.
+		public Vector2 uv; // Not normalized - values are in Atlas width and height range.
 		public uint xref; // Index of input vertex from which this output vertex originated.
 	};
 	// Output mesh.
@@ -62,29 +62,29 @@ namespace XAtlas.Net
 		/// <summary> You should only read it unless you know what are you doing </summary>
 		public Ptr<MemLayout> Data => new(Handle);
 
-		public AddMeshError AddMesh(in MeshDecl meshDecl, uint meshCountHint = 0) =>
+		public AddMeshError AddMesh(MeshDecl meshDecl, uint meshCountHint = 0) =>
 			XAtlasAPI.AddMesh(Handle, meshDecl, meshCountHint);
 
 		public void AddMeshJoin() =>
 			XAtlasAPI.AddMeshJoin(Handle);
 
-		public AddMeshError AddUvMesh(in UvMeshDecl decl) =>
+		public AddMeshError AddUvMesh(UvMeshDecl decl) =>
 			XAtlasAPI.AddUvMesh(Handle, decl);
 
 		/// <summary>
 		/// Call after all AddMesh calls. Can be called multiple times to recompute charts with different options.
 		/// </summary>
-		public void ComputeCharts(in ChartOptions chartOptions) =>
+		public void ComputeCharts(ChartOptions chartOptions) =>
 			XAtlasAPI.ComputeCharts(Handle, chartOptions);
 
 		/// <summary> Call after ComputeCharts. Can be called multiple times to re-pack charts with different options. </summary>
-		public void PackCharts(in PackOptions packOptions) =>
+		public void PackCharts(PackOptions packOptions) =>
 			XAtlasAPI.PackCharts(Handle, packOptions);
 
 		/// <summary>
 		/// Equivalent to calling ComputeCharts and PackCharts in sequence. Can be called multiple times to regenerate with different options.
 		/// </summary>
-		public void Generate(in ChartOptions chartOptions, in PackOptions packOptions) =>
+		public void Generate(ChartOptions chartOptions, PackOptions packOptions) =>
 			XAtlasAPI.Generate(Handle, chartOptions, packOptions);
 
 		/// <summary>
@@ -93,6 +93,6 @@ namespace XAtlas.Net
 		public void SetProgressCallback(ProgressFunc progressFunc, IntPtr progressUserData = default) =>
 			XAtlasAPI.SetProgressCallback(Handle, progressFunc, progressUserData);
 
-		protected override void OnDestroyNativeObj(IntPtr nativeObjPtr) => XAtlasAPI.Destroy(nativeObjPtr);
+		protected override void DestroyNativeObj(IntPtr nativeObjPtr) => XAtlasAPI.Destroy(nativeObjPtr);
 	}
 }

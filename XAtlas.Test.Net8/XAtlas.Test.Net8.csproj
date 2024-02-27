@@ -14,7 +14,7 @@
 	
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<!-- Copy xatlas native library and debug symbol to output path -->
-		<Copy SourceFiles="$(SolutionDir)NativeBin\xatlas.dll; $(SolutionDir)NativeBin\xatlas.pdb" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="$(SolutionDir)NativeBin\xatlas.dll; $(SolutionDir)NativeBin\xatlas.pdb" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" />
 	</Target>
 
 </Project>

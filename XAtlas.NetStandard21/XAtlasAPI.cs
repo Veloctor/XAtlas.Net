@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Velctor.Utils;
 using static System.Runtime.InteropServices.CallingConvention;
-using static XAtlas.Net.Interop.PrintFormat;
 
 namespace XAtlas.Net.Interop;
 
@@ -25,11 +24,11 @@ public struct MeshDecl
 	{
 	}
 
-	public Ptr<float> vertexPositionData = null;
+	public Ptr<Vector3> vertexPositionData = null;
 	/// <summary>  Optional </summary>
-	public Ptr<float> vertexNormalData = null;
+	public Ptr<Vector3> vertexNormalData = null;
 	/// <summary> optional. The input UVs are provided as a hint to the chart generator. </summary>
-	public Ptr<float> vertexUvData = null;
+	public Ptr<Vector2> vertexUvData = null;
 	/// <summary>  Optional </summary>
 	public Ptr<int> indexData = null;
 	/// <summary>
@@ -70,7 +69,7 @@ public enum IndexFormat
 
 public struct UvMeshDecl
 {
-	public Ptr<float> vertexUvData;
+	public Ptr<Vector2> vertexUvData;
 	public Ptr<uint> indexData;
 	public Ptr<uint> faceMaterialData;
 	public uint vertexCount ;

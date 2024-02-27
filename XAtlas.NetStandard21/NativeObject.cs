@@ -12,11 +12,11 @@ public abstract class NativeObject : IDisposable
 	public void Dispose()
 	{
 		if (Handle != IntPtr.Zero) {
-			OnDestroyNativeObj(Handle);
+			DestroyNativeObj(Handle);
 			Handle = IntPtr.Zero;
 			GC.SuppressFinalize(this);
 		}
 	}
 
-	protected abstract void OnDestroyNativeObj(IntPtr nativeObjPtr);
+	protected abstract void DestroyNativeObj(IntPtr nativeObjPtr);
 }
