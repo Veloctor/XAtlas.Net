@@ -65,7 +65,8 @@ class Program
 		for (int i = 0; i < indices.Length; i += 3) {
 			obj.FacesPosIdx.Add(new Int3(indices[i], indices[i + 1], indices[i + 2]) + 1);
 		}
-		obj.WriteObjFile(outFile, null);
+		string objStr = obj.ToString();
+		File.WriteAllText(path, objStr);
 	}
 
 	public static BOOL LogProgress(ProgressCategory category, int progress, IntPtr userData)

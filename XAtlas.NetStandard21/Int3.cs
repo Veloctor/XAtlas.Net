@@ -9,4 +9,6 @@ public struct Int3
 
 	public static Int3 operator +(Int3 a, int b) => new(a.X + b, a.Y + b, a.Z + b);
 	public static Int3 operator -(Int3 a, int b) => new(a.X - b, a.Y - b, a.Z - b);
+
+	public static implicit operator Int3(int s) => new(s);
 }

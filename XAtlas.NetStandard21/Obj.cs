@@ -15,11 +15,16 @@ public class Obj
 	public readonly List<Vector3> Verts = new();
 	public readonly List<Vector3> Normals = new();
 	public readonly List<Vector2> UVs = new();
+	/// <summary> 注意obj的序号是从1开始的，每个减去1才能用作indices buffer </summary>
 	public readonly List<Int3> FacesPosIdx = new();
 	public readonly List<Int3> FacesUVIdx = new();
 	public readonly List<Int3> FacesNormalIdx = new();
-	public int VertCount => Verts.Count;
+	public int VertexCount => Verts.Count;
 	public int IndexCount => FacesPosIdx.Count;
+	public bool HasUVs => UVs.Count == VertexCount;
+	public bool HasNormals => Normals.Count == VertexCount;
+	public bool HasUVIdx => FacesUVIdx.Count == IndexCount;
+	public bool HasFacesNormalIdx => FacesNormalIdx.Count == IndexCount;
 
 	public Obj(string inFile)
 	{
@@ -27,7 +32,6 @@ public class Obj
 		while (!sr.EndOfStream) {
 			AppendLine(sr.ReadLine());
 		}
-		Debug.Assert(Normals.Count ==VertCount && UVs.Count == VertCount, "Vertex Normal UV count is different");
 	}
 
 	public void ClearAll()
@@ -45,13 +49,15 @@ public class Obj
 		ReadOnlySpan<char> objLine = fullLine;
 		int cmtIdx = objLine.IndexOf('#');
 		if (cmtIdx >= 0)
-			objLine = objLine[..cmtIdx];
+			objLine = objLine[..cmtIdx];//忽略每行第一个#后的内容
 		if (objLine.IsWhiteSpace()) {
 			return;
 		}
+		//空格分割当前行的字符串, 返回前四段子串在父串的索引范围(obj四段够用了)
 		Range4 elems = Split4(objLine, separator: ' ');
+		//根据序号获得子字符串. 例如"v 11.4 51.4 191.9", "v"为0, "11.4"为1,"51.4"为2,"191.9"为3
 		ReadOnlySpan<char> Elem(int idx) => new StrSeg(fullLine, elems[idx]).AsSpan;
-		float ElemF(int idx) => float.Parse(new StrSeg(fullLine, elems[idx]).AsSpan);
+		float ElemF(int idx) => float.Parse(Elem(idx));//不考虑格式错误的obj, 所以不处理异常了
 
 		if (Elem(0).Equals("v", Ordinal)) {
 			Verts.Add(new(ElemF(1), ElemF(2), ElemF(3)));
@@ -75,16 +81,17 @@ public class Obj
 		if (SepCnt > 0) {
 			Range4* faceElems = stackalloc Range4[3];
 			for (int i = 0; i < 3; i++)
-				faceElems[i] = Split4(Elem(i + 1), separator: '/');
+				faceElems[i] = Split4(Elem(i + 1), separator: '/');//i+1跳过f
+			//Face Element Int，elemIdx:被空格分割后的子字符串序号(忽略f), subIdx:子字符串继续被/分割后的序号。
+			//比如"f 21/32/65 54/23/86 14/25/36"这样的行，FElemI(0, 1)返回的就是32。
 			int FElemI(int elemIdx, int subIdx) => int.Parse(new StrSeg(fullLine, faceElems[elemIdx][subIdx]).AsSpan);
 			bool TryFElemI(int elemIdx, int subIdx, out int idx)
 			{
 				idx = default;
 				Range elemRag = faceElems[elemIdx][subIdx];
-				if(elemRag.le)
-				ReadOnlySpan<char> seg = fullLine.AsSpan()[elemRag];
-				if (seg.IsEmpty)
+				if (elemRag.Start.Value <= elemRag.End.Value)
 					return false;
+				ReadOnlySpan<char> seg = fullLine.AsSpan()[elemRag];
 				return int.TryParse(seg, out idx);
 			}
 
@@ -105,45 +112,54 @@ public class Obj
 	private int PopCnt(ReadOnlySpan<char> str, char wantToCount)
 	{
 		int cnt = 0;
-		foreach(char c in str)
-			if(c == wantToCount) cnt++;
+		foreach (char c in str)
+			if (c == wantToCount) cnt++;
 		return cnt;
 	}
 
 	public override string ToString()
 	{
 		StringBuilder sb = new();
-		foreach (var vert in Verts)
-			sb.Append("v ").AppendVector3(vert);
-		foreach (var norm in Normals)
-			sb.Append("n ").AppendVector3(norm);
-		foreach (var uv in UVs)
-			sb.Append("n ").AppendVector2(uv);
-		for (int i = 0;i< Verts.Count; i++) {
-
+		foreach (Vector3 vert in Verts)
+			sb.Append("v ").AppendVector3(vert).Append('\n');
+		if (HasUVs)
+			foreach (Vector2 uv in UVs)
+				sb.Append("vt ").AppendVector2(uv).Append('\n');
+		if (HasNormals)
+			foreach (Vector3 norm in Normals)
+				sb.Append("n ").AppendVector3(norm).Append('\n');
+		for (int i = 0; i < IndexCount; i++) {
+			Int3 vIdx = FacesPosIdx[i];
+			Int3 uvIdx = HasUVIdx ? FacesUVIdx[i] : 0;//Obj的Index是从1开始的，所以0为无效
+			Int3 nIdx = HasNormals ? FacesNormalIdx[i] : 0;
+			AppendFace(vIdx, uvIdx, nIdx);
+			sb.Append('\n'); ;
 		}
 		return sb.ToString();
 
-		void AppendFace(Int3 vid, Int3 nid, Int3 vtid)
+		void AppendFace(Int3 vid, Int3 vtid, Int3 nid)
 		{
+			//f and first vert
 			sb.Append("f ").Append(vid.X).Append('/');
-			if (nid.X > 0)
-				sb.Append(nid.X);
-			sb.Append('/');
 			if (vtid.X > 0)
 				sb.Append(vtid.X);
-			sb.Append(' ').Append(vid.Y).Append('/');
-			if(nid.Y > 0)
-				sb.Append(nid.Y);
 			sb.Append('/');
+			if (nid.X > 0)
+				sb.Append(nid.X);
+			//vert second
+			sb.Append(' ').Append(vid.Y).Append('/');
 			if (vtid.Y > 0)
 				sb.Append(vtid.Y);
+			sb.Append('/');
+			if (nid.Y > 0)
+				sb.Append(nid.Y);
+			//vert third
 			sb.Append(' ').Append(vid.Z).Append('/');
-			if(nid.Z > 0)
-				sb.Append(nid.Z);
-			sb.Append("/");
-			if(vtid.Z > 0)
+			if (vtid.Z > 0)
 				sb.Append(vtid.Z);
+			sb.Append("/");
+			if (nid.Z > 0)
+				sb.Append(nid.Z);
 		}
 	}
 
