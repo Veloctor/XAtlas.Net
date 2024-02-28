@@ -23,7 +23,7 @@ class Program
 		for (int i = 0; i < verts.Count; i++) {
 			posPtr[i] = verts[i];
 		}
-		List<Int3> Faces = obj.Faces;
+		List<Int3> Faces = obj.FacesPosIdx;
 		Ptr<int> idxPtr = stackalloc int[Faces.Count * 3];
 		Span<int> idxBuffer = new(idxPtr, Faces.Count * 3);
 		for (int i = 0; i < Faces.Count; i++) {
@@ -63,7 +63,7 @@ class Program
 			obj.UVs.Add(uv);
 		}
 		for (int i = 0; i < indices.Length; i += 3) {
-			obj.Faces.Add(new Int3(indices[i], indices[i + 1], indices[i + 2]) + 1);
+			obj.FacesPosIdx.Add(new Int3(indices[i], indices[i + 1], indices[i + 2]) + 1);
 		}
 		obj.WriteObjFile(outFile, null);
 	}
