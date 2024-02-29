@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Velctor.Utils;
 using XAtlas.Net;
@@ -20,11 +21,11 @@ public class Obj
 	public readonly List<Int3> FacesUVIdx = new();
 	public readonly List<Int3> FacesNormalIdx = new();
 	public int VertexCount => Verts.Count;
-	public int IndexCount => FacesPosIdx.Count;
+	public int FaceCount => FacesPosIdx.Count;
 	public bool HasUVs => UVs.Count == VertexCount;
 	public bool HasNormals => Normals.Count == VertexCount;
-	public bool HasUVIdx => FacesUVIdx.Count == IndexCount;
-	public bool HasFacesNormalIdx => FacesNormalIdx.Count == IndexCount;
+	public bool HasUVIdx => FacesUVIdx.Count == FaceCount;
+	public bool HasFacesNormalIdx => FacesNormalIdx.Count == FaceCount;
 
 	public Obj(string inFile)
 	{
@@ -80,11 +81,14 @@ public class Obj
 		int SepCnt = PopCnt(Elem(1), '/');
 		if (SepCnt > 0) {
 			Range4* faceElems = stackalloc Range4[3];
+			Span<Range4> faceElemsSpan = new(faceElems, 3);
 			for (int i = 0; i < 3; i++)
-				faceElems[i] = Split4(Elem(i + 1), separator: '/');//i+1跳过f
+				faceElemsSpan[i] = Split4(Elem(i + 1), separator: '/').OffsetedWith(elems[i + 1].Start.Value);//i+1跳过f
+
 			//Face Element Int，elemIdx:被空格分割后的子字符串序号(忽略f), subIdx:子字符串继续被/分割后的序号。
 			//比如"f 21/32/65 54/23/86 14/25/36"这样的行，FElemI(0, 1)返回的就是32。
 			int FElemI(int elemIdx, int subIdx) => int.Parse(new StrSeg(fullLine, faceElems[elemIdx][subIdx]).AsSpan);
+
 			bool TryFElemI(int elemIdx, int subIdx, out int idx)
 			{
 				idx = default;
@@ -128,7 +132,7 @@ public class Obj
 		if (HasNormals)
 			foreach (Vector3 norm in Normals)
 				sb.Append("n ").AppendVector3(norm).Append('\n');
-		for (int i = 0; i < IndexCount; i++) {
+		for (int i = 0; i < FaceCount; i++) {
 			Int3 vIdx = FacesPosIdx[i];
 			Int3 uvIdx = HasUVIdx ? FacesUVIdx[i] : 0;//Obj的Index是从1开始的，所以0为无效
 			Int3 nIdx = HasNormals ? FacesNormalIdx[i] : 0;
@@ -140,26 +144,29 @@ public class Obj
 		void AppendFace(Int3 vid, Int3 vtid, Int3 nid)
 		{
 			//f and first vert
-			sb.Append("f ").Append(vid.X).Append('/');
+			sb.Append("f ").Append(vid.X);
+			if (vtid.X > 0 || nid.X > 0)
+				sb.Append('/');
 			if (vtid.X > 0)
 				sb.Append(vtid.X);
-			sb.Append('/');
 			if (nid.X > 0)
-				sb.Append(nid.X);
+				sb.Append('/').Append(nid.X);
 			//vert second
-			sb.Append(' ').Append(vid.Y).Append('/');
+			sb.Append(' ').Append(vid.Y);
+			if (vtid.Y > 0 || nid.Y > 0)
+				sb.Append('/');
 			if (vtid.Y > 0)
 				sb.Append(vtid.Y);
-			sb.Append('/');
 			if (nid.Y > 0)
-				sb.Append(nid.Y);
+				sb.Append('/').Append(nid.Y);
 			//vert third
-			sb.Append(' ').Append(vid.Z).Append('/');
+			sb.Append(' ').Append(vid.Z);
+			if (vtid.Z > 0 || nid.Z > 0)
+				sb.Append('/');
 			if (vtid.Z > 0)
 				sb.Append(vtid.Z);
-			sb.Append("/");
 			if (nid.Z > 0)
-				sb.Append(nid.Z);
+				sb.Append("/").Append(nid.Z);
 		}
 	}
 
@@ -229,5 +236,15 @@ public struct Range4
 	public Range this[int index] {
 		get => x.GetPtr()[index];
 		set => x.GetPtr()[index] = value;
+	}
+
+	public readonly Range4 OffsetedWith(int offset)
+	{
+		Range4 copy = this;
+		Ptr<int> intPtr = copy.GetPtr().CastAs<int>();
+		for (int i = 0; i < 8; i++) {
+			intPtr[i] += offset;
+		}
+		return copy;
 	}
 }

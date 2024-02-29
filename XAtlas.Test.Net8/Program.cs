@@ -9,35 +9,26 @@ using XAtlas.Net.Interop;
 
 class Program
 {
-	private unsafe static void Main()
+	unsafe static void Main()
 	{
 		string path = "E:/Desktop/";
-		string inFile = path + "qnb.obj";
-		string outFile = path + "qnbout.obj";
-		Atlas atlas = new();
+		string inFile = path + "qnb2.obj";
+		string outFile = path + "qnb2out.obj";
+		//XAtlasAPI.SetPrint(PrintFormatV2.PrintFormat, true); //doesn't work
+		using AtlasHandle atlas = new();
 		atlas.SetProgressCallback(LogProgress);
 		Obj obj = new(inFile);
-		List<Vector3> verts = obj.Verts;
-		Ptr<Vector3> posPtr = stackalloc Vector3[verts.Count];
-		Span<Vector3> posBuffer = new(posPtr, verts.Count);
-		for (int i = 0; i < verts.Count; i++) {
-			posPtr[i] = verts[i];
-		}
-		List<Int3> Faces = obj.FacesPosIdx;
-		Ptr<int> idxPtr = stackalloc int[Faces.Count * 3];
-		Span<int> idxBuffer = new(idxPtr, Faces.Count * 3);
-		for (int i = 0; i < Faces.Count; i++) {
-			Int3 face = Faces[i] - 1;
-			idxPtr[i * 3 + 0] = face.X;
-			idxPtr[i * 3 + 1] = face.Y;
-			idxPtr[i * 3 + 2] = face.Z;
-		}
+		Ptr<Vector3> vertsPtr = stackalloc Vector3[obj.VertexCount];
+		Ptr<Int3> idxPtr = stackalloc Int3[obj.FaceCount];
+		for (int i = 0; i < obj.VertexCount; i++)
+			vertsPtr[i] = obj.Verts[i];
+		for (int i = 0; i < obj.FaceCount; i++)
+			idxPtr[i] = obj.FacesPosIdx[i] - 1;
 		MeshDecl meshDecl = new();
-		meshDecl.vertexCount = (uint)posBuffer.Length;
-		meshDecl.vertexPositionData = posPtr;
-		meshDecl.vertexPositionStride = 12;
-		meshDecl.indexCount = (uint)idxBuffer.Length;
-		meshDecl.indexData = idxPtr;
+		meshDecl.vertexCount = (uint)obj.VertexCount;
+		meshDecl.vertexPositionData = vertsPtr;
+		meshDecl.indexCount = (uint)obj.FaceCount * 3;
+		meshDecl.indexData = idxPtr.CastAs<int>();
 		meshDecl.indexFormat = IndexFormat.UInt32;
 		AddMeshError addMeshRetCode = atlas.AddMesh(meshDecl, 1);
 		if (addMeshRetCode != AddMeshError.Success) {
@@ -48,7 +39,7 @@ class Program
 		ChartOptions options = new();
 		atlas.Generate(options, new PackOptions(1024));
 		sw.Stop();
-		var data = atlas.Data;
+		Ptr<AtlasHandle.Atlas> data = atlas.Output;
 		Vector2 wh = new(data.Target.width, data.Target.height);
 		Console.WriteLine($"chart count: {data.Target.chartCount}, width: {wh.X}, height: {wh.Y}, generate time:{sw.Elapsed.TotalSeconds:G4}s");
 		var mesh = data.Target.meshes;
@@ -57,16 +48,17 @@ class Program
 		obj.ClearAll();
 		for (int i = 0; i < mesh.Target.vertexCount; i++) {
 			Vertex v = vertsout[i];
-			Vector3 pos = posBuffer[(int)v.xref];
+			Vector3 pos = vertsPtr[(int)v.xref];
 			Vector2 uv = v.uv / wh;
 			obj.Verts.Add(pos);
 			obj.UVs.Add(uv);
 		}
 		for (int i = 0; i < indices.Length; i += 3) {
 			obj.FacesPosIdx.Add(new Int3(indices[i], indices[i + 1], indices[i + 2]) + 1);
+			obj.FacesUVIdx.Add(new Int3(indices[i], indices[i + 1], indices[i + 2]) + 1);
 		}
 		string objStr = obj.ToString();
-		File.WriteAllText(path, objStr);
+		File.WriteAllText(outFile, objStr);
 	}
 
 	public static BOOL LogProgress(ProgressCategory category, int progress, IntPtr userData)

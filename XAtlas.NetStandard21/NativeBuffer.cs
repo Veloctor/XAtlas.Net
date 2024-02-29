@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 namespace Velctor.Utils;
-public class NativeBuffer<T> : NativeObject where T: unmanaged
+public class NativeBuffer<T> : UnmanagedResource where T: unmanaged
 {
 	public int Count {  get; private set; }
 	public unsafe nint ByteLength => Count * sizeof(T);
@@ -21,7 +21,7 @@ public class NativeBuffer<T> : NativeObject where T: unmanaged
 		Count = newCount;
 	}
 
-	protected override void DestroyNativeObj(IntPtr nativeObjPtr)
+	protected override void ReleaseUnmanagedResource()
 	{
 		Marshal.FreeHGlobal(Handle);
 	}

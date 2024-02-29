@@ -28,7 +28,7 @@ namespace XAtlas.Net
 	{
 		public int atlasIndex; // Sub-atlas index. -1 if the vertex doesn't exist in any atlas.
 		public int chartIndex; // -1 if the vertex doesn't exist in any chart.
-		public Vector2 uv; // Not normalized - values are in Atlas width and height range.
+		public Vector2 uv; // Not normalized - values are in AtlasHandle width and height range.
 		public uint xref; // Index of input vertex from which this output vertex originated.
 	};
 	// Output mesh.
@@ -42,25 +42,26 @@ namespace XAtlas.Net
 		public uint vertexCount;
 	};
 
-	public class Atlas : NativeObject
+	//if you want generate atlas, use AtlasHandle class
+	public struct Atlas
 	{
-		public Atlas() : base(XAtlasAPI.Create()) { }
+		public Ptr<uint> image;
+		public Ptr<Mesh> meshes; // The output meshes, corresponding to each AddMesh call.
+		public Ptr<float> utilization; // Normalized atlas texel utilization array. E.g. a value of 0.8 means 20% empty space. atlasCount in length.
+		public uint width; // Atlas width in texels.
+		public uint height; // Atlas height in texels.
+		public uint atlasCount; // Number of sub-atlases. Equal to 0 unless PackOptions resolution is changed from default (0).
+		public uint chartCount; // Total number of charts in all meshes.
+		public uint meshCount; // Number of output meshes. Equal to the number of times AddMesh was called.
+		public float texelsPerUnit; // Equal to PackOptions texelsPerUnit if texelsPerUnit > 0, otherwise an estimated value to match PackOptions resolution.
+	}
 
-		public struct MemLayout
-		{
-			public Ptr<uint> image;
-			public Ptr<Mesh> meshes; // The output meshes, corresponding to each AddMesh call.
-			public Ptr<float> utilization; // Normalized atlas texel utilization array. E.g. a value of 0.8 means 20% empty space. atlasCount in length.
-			public uint width; // Atlas width in texels.
-			public uint height; // Atlas height in texels.
-			public uint atlasCount; // Number of sub-atlases. Equal to 0 unless PackOptions resolution is changed from default (0).
-			public uint chartCount; // Total number of charts in all meshes.
-			public uint meshCount; // Number of output meshes. Equal to the number of times AddMesh was called.
-			public float texelsPerUnit; // Equal to PackOptions texelsPerUnit if texelsPerUnit > 0, otherwise an estimated value to match PackOptions resolution.
-		}
+	public class AtlasHandle : UnmanagedResource
+	{
+		public AtlasHandle() : base(XAtlasAPI.Create()) { }
 
 		/// <summary> You should only read it unless you know what are you doing </summary>
-		public Ptr<MemLayout> Data => new(Handle);
+		public Atlas Output => new Ptr<Atlas>(Handle).Target;
 
 		public AddMeshError AddMesh(MeshDecl meshDecl, uint meshCountHint = 0) =>
 			XAtlasAPI.AddMesh(Handle, meshDecl, meshCountHint);
@@ -93,6 +94,6 @@ namespace XAtlas.Net
 		public void SetProgressCallback(ProgressFunc progressFunc, IntPtr progressUserData = default) =>
 			XAtlasAPI.SetProgressCallback(Handle, progressFunc, progressUserData);
 
-		protected override void DestroyNativeObj(IntPtr nativeObjPtr) => XAtlasAPI.Destroy(nativeObjPtr);
+		protected override void ReleaseUnmanagedResource() => XAtlasAPI.Destroy(Handle);
 	}
 }

@@ -3,7 +3,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
-
+//this dll doesn't work yet
 void SetLogFunc(LogFunc func, bool verbose) {
 	logFunc = func;
     xatlas::SetPrint(FormatToConsole, verbose);

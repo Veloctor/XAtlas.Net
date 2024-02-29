@@ -150,7 +150,7 @@ public struct PackOptions
 	public BOOL bruteForce = false;
 
 	/// <summary>
-	/// Create Atlas::image
+	/// Create AtlasHandle::image
 	/// </summary>
 	public BOOL createImage = false;
 
@@ -183,9 +183,6 @@ public delegate IntPtr ReallocFunc(IntPtr addr, IntPtr size);
 
 [UnmanagedFunctionPointer(Cdecl)]
 public delegate void FreeFunc(IntPtr addr);
-
-[UnmanagedFunctionPointer(Cdecl)]
-public delegate int PrintFunc(IntPtr PStr_format, byte args);
 
 public static class XAtlasAPI
 {
@@ -222,7 +219,7 @@ public static class XAtlasAPI
 	public static extern void SetAlloc(ReallocFunc reallocFunc, FreeFunc freeFunc);
 
 	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasSetPrint")]
-	public static extern void SetPrint(PrintFunc print, BOOL verbose);
+	public static extern void SetPrint(IntPtr printFuncPtr, BOOL verbose);
 
 	[DllImport(DLL, CallingConvention = Cdecl, CharSet = CharSet.Ansi, EntryPoint = "xatlasAddMeshErrorString")]
 	public static extern string AddMeshErrorString(AddMeshError error);
