@@ -39,10 +39,10 @@ class Program
 		ChartOptions options = new();
 		atlas.Generate(options, new PackOptions(1024));
 		sw.Stop();
-		Ptr<AtlasHandle.Atlas> data = atlas.Output;
-		Vector2 wh = new(data.Target.width, data.Target.height);
-		Console.WriteLine($"chart count: {data.Target.chartCount}, width: {wh.X}, height: {wh.Y}, generate time:{sw.Elapsed.TotalSeconds:G4}s");
-		var mesh = data.Target.meshes;
+		ref Atlas  data = ref atlas.Output;
+		Vector2 wh = new(data.width, data.height);
+		Console.WriteLine($"chart count: {data.chartCount}, width: {wh.X}, height: {wh.Y}, generate time:{sw.Elapsed.TotalSeconds:G4}s");
+		var mesh = data.meshes;
 		Span<Vertex> vertsout = new(mesh.Target.vertexArray, (int)mesh.Target.vertexCount);
 		Span<int> indices = new(mesh.Target.indexArray, (int)mesh.Target.indexCount);
 		obj.ClearAll();

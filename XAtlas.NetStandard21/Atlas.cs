@@ -61,7 +61,7 @@ namespace XAtlas.Net
 		public AtlasHandle() : base(XAtlasAPI.Create()) { }
 
 		/// <summary> You should only read it unless you know what are you doing </summary>
-		public Atlas Output => new Ptr<Atlas>(Handle).Target;
+		public ref Atlas Output => ref new Ptr<Atlas>(Handle).Target;
 
 		public AddMeshError AddMesh(MeshDecl meshDecl, uint meshCountHint = 0) =>
 			XAtlasAPI.AddMesh(Handle, meshDecl, meshCountHint);
