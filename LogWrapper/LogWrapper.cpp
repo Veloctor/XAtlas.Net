@@ -1,57 +1,67 @@
-﻿#include "LogWrapper.h"
-#include "xatlas.h"
-#include <cstdarg>
+﻿#include <cstdarg>
 #include <cstdio>
-#include <cstdlib>
-//this dll doesn't work yet
-void SetLogFunc(LogFunc func, bool verbose) {
-	logFunc = func;
-    xatlas::SetPrint(FormatToConsole, verbose);
+#include <vector>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#include "LogWrapper.h"
+
+StringFunc logFunc = nullptr;
+
+const auto dllName = L"xatlas.dll";
+const auto xatlasSetPrintName = "xatlasSetPrint";
+
+// xatlasPrintFunc的定义
+typedef int (*xatlasPrintFunc)(const char*, ...);
+// xatlasSetPrint函数指针类型的定义
+typedef void (*xatlasSetPrintAction)(xatlasPrintFunc print, bool verbose);
+
+static xatlasSetPrintAction resolveXAtlasPrintAction()
+{
+    HMODULE hModule = LoadLibrary(dllName);
+    if (hModule == NULL)// 处理加载DLL失败的情况
+        return (xatlasSetPrintAction)1;
+    auto pfnxatlasSetPrint = (xatlasSetPrintAction)GetProcAddress(hModule, xatlasSetPrintName);
+    if (pfnxatlasSetPrint == NULL) {// 处理获取函数地址失败的情况
+        FreeLibrary(hModule);
+        return NULL;
+    }
+    return pfnxatlasSetPrint;
 }
 
-static int FormatToConsole(const char* format, ...) {
-    // 假设我们不知道最终字符串的具体长度，先尝试一个较小的缓冲区
-    int size = 100; // 初始缓冲区大小
-    char* buffer = (char*)malloc(size);
-    if (buffer == NULL) return -1; // 内存分配失败
-
+static int FormatAndLog(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    // 尝试将格式化的字符串写入缓冲区
-    int nwritten = vsnprintf(buffer, size, format, args);
-    if (nwritten < 0) {
-        // 格式化错误
-        va_end(args);
-        free(buffer);
-        return -1;
-    }
-    if (nwritten >= size) {
-        // 缓冲区太小，需要更大的缓冲区
-        size = nwritten + 1; // 需要的大小
-        char* newBuffer = (char*)realloc(buffer, size);
-        if (newBuffer == NULL) {
-            free(buffer);
-            va_end(args);
-            return -1; // 内存重新分配失败
-        }
-        buffer = newBuffer;
-        // 使用新的缓冲区大小重新尝试格式化
-        va_start(args, format); // 重新初始化args
-        nwritten = vsnprintf(buffer, size, format, args);
-        if (nwritten < 0 || nwritten >= size) {
-            // 如果还是失败，就放弃
-            va_end(args);
-            free(buffer);
-            return -1;
-        }
-    }
+    // 获取格式化字符串所需的长度
+    int len = std::vsnprintf(nullptr, 0, format, args);
     va_end(args);
 
-    // 此时，buffer包含了格式化后的字符串
-    // 根据需要处理buffer（例如，打印或返回给调用者）
-    // 注意：调用者需要负责释放buffer
-    logFunc(buffer); // 示例：打印到控制台
+    // 创建足够大的字符串缓冲区
+    std::vector<char> vec(len + 1);
+    va_start(args, format);
+    std::vsnprintf(vec.data(), vec.size(), format, args);
+    va_end(args);
 
-    free(buffer); // 如果不再需要，释放内存
-    return nwritten; // 返回写入的字符数（不包括终止的'\0'）
+    //call the export log function with formatted string
+    logFunc(vec.data(), len);
+    return len; // 返回写入的字符数（不包括终止的'\0'）
+}
+
+int SetPrintFormatted(StringFunc func, bool verbose) {
+    if (func == nullptr)
+        return -1;
+	logFunc = func;
+    FormatAndLog("setting message log function 0x%p\n", func);
+    auto xatSetPrint = resolveXAtlasPrintAction();
+    if ((size_t)xatSetPrint == 1)
+    {
+        FormatAndLog("failed to load xatlas.dll\n");
+        return -2;
+    }
+    if (xatSetPrint == nullptr) {
+        FormatAndLog("failed to resolve xatlasSetPrint from xatlas.dll\n");
+        return -3;
+    }
+    xatSetPrint(&FormatAndLog, verbose);
+    return 0;
 }

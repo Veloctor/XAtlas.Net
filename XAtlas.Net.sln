@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XAtlas.NetStandard21", "XAtlas.NetStandard21\XAtlas.NetStandard21.csproj", "{F59F86A2-7181-4168-8FA7-4CDD137A949E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AC2F9CF2-6579-48D1-AEFC-E862411322C9} = {AC2F9CF2-6579-48D1-AEFC-E862411322C9}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XAtlas.Test.Net8", "XAtlas.Test.Net8\XAtlas.Test.Net8.csproj", "{2282F640-2177-4E09-8255-F975AF09EFEC}"
 EndProject

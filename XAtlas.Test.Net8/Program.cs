@@ -1,8 +1,8 @@
-﻿using ObjParser;
-using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using ObjParser;
 using Velctor.Utils;
 using XAtlas.Net;
 using XAtlas.Net.Interop;
@@ -12,9 +12,11 @@ class Program
 	unsafe static void Main()
 	{
 		string path = "E:/Desktop/";
-		string inFile = path + "qnb2.obj";
-		string outFile = path + "qnb2out.obj";
-		//XAtlasAPI.SetPrint(PrintFormatV2.PrintFormat, true); //doesn't work
+		string inFile = path + "qnb.obj";
+		string outFile = path + "qnbout.obj";
+		int setPrintRet = XAtlasAPI.SetPrint(OnXAtlasLog, true);
+		if (setPrintRet != 0)
+			Console.WriteLine("SetPrint Error: " + setPrintRet);
 		using AtlasHandle atlas = new();
 		atlas.SetProgressCallback(LogProgress);
 		Obj obj = new(inFile);
@@ -35,13 +37,13 @@ class Program
 			Console.WriteLine($"Add Mesh Error:{addMeshRetCode}");
 			return;
 		}
-		Stopwatch sw = Stopwatch.StartNew();
+		//Stopwatch sw = Stopwatch.StartNew();
 		ChartOptions options = new();
 		atlas.Generate(options, new PackOptions(1024));
-		sw.Stop();
-		ref Atlas  data = ref atlas.Output;
+		//sw.Stop();
+		ref Atlas data = ref atlas.Output;
 		Vector2 wh = new(data.width, data.height);
-		Console.WriteLine($"chart count: {data.chartCount}, width: {wh.X}, height: {wh.Y}, generate time:{sw.Elapsed.TotalSeconds:G4}s");
+		Console.WriteLine($"chart count: {data.chartCount}, width: {wh.X}, height: {wh.Y}");
 		var mesh = data.meshes;
 		Span<Vertex> vertsout = new(mesh.Target.vertexArray, (int)mesh.Target.vertexCount);
 		Span<int> indices = new(mesh.Target.indexArray, (int)mesh.Target.indexCount);
@@ -61,7 +63,17 @@ class Program
 		File.WriteAllText(outFile, objStr);
 	}
 
-	public static BOOL LogProgress(ProgressCategory category, int progress, IntPtr userData)
+	public static void OnXAtlasLog(IntPtr LPStr, int strLen)
+	{
+		const string header = "XAtlas: ";
+		int offset = header.Length;
+		Span<char> str = stackalloc char[strLen + offset];
+		for (int i = 0; i < offset; i++) str[i] = header[i];
+		for (int i = 0; i < strLen; i++) str[i + offset] = (char)Marshal.ReadByte(LPStr, i);//assert all chars from XAtlas logger is ASCII
+		Console.Out.Write(str);
+	}
+
+	public static Bool LogProgress(ProgressCategory category, int progress, IntPtr userData)
 	{
 		Console.WriteLine($"\t{category}: {progress}%");
 		return true;

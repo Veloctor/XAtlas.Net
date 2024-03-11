@@ -35,7 +35,7 @@ public struct MeshDecl
 	/// Optional. Must be faceCount in length.
 	/// Don't atlas faces set to true. Ignored faces still exist in the output meshes, Vertex uv is set to (0, 0) and Vertex atlasIndex to -1.
 	/// </summary>
-	public Ptr<BOOL> faceIgnoreData = null;
+	public Ptr<Bool> faceIgnoreData = null;
 	/// <summary>
 	/// Optional. Must be faceCount in length.
 	/// Only faces with the same material will be assigned to the same chart.
@@ -72,7 +72,7 @@ public struct UvMeshDecl
 	public Ptr<Vector2> vertexUvData;
 	public Ptr<uint> indexData;
 	public Ptr<uint> faceMaterialData;
-	public uint vertexCount ;
+	public uint vertexCount;
 	public uint vertexStride;
 	public uint indexCount;
 	/// <summary> optional. Add this offset to all indices. </summary>
@@ -80,6 +80,9 @@ public struct UvMeshDecl
 	public IndexFormat indexFormat;
 }
 
+/// <summary>
+/// Custom parameterization function. texcoords initial values are an orthogonal parameterization.
+/// </summary>
 [UnmanagedFunctionPointer(Cdecl)]
 public delegate void ParameterizeFunc(Ptr<float> positions, Ptr<float> texcoords, uint vertexCount, Ptr<uint> indices, uint indexCount);
 
@@ -99,8 +102,8 @@ public struct ChartOptions
 	public float textureSeamWeight = 0.5f;
 	public float maxCost = 2;
 	public uint maxIterations = 1;
-	public BOOL useInputMeshUvs = false;
-	public BOOL fixWinding = false;
+	public Bool useInputMeshUvs = false;
+	public Bool fixWinding = false;
 }
 
 public struct PackOptions
@@ -137,32 +140,32 @@ public struct PackOptions
 	/// <summary>
 	/// Leave space around charts for texels that would be sampled by bilinear filtering.
 	/// </summary>
-	public BOOL bilinear = true;
+	public Bool bilinear = true;
 
 	/// <summary>
 	/// Align charts to 4x4 blocks. Also improves packing speed, since there are fewer possible chart locations to consider.
 	/// </summary>
-	public BOOL blockAlign = false;
+	public Bool blockAlign = false;
 
 	/// <summary>
 	/// Slower, but gives the best result. If false, use random chart placement.
 	/// </summary>
-	public BOOL bruteForce = false;
+	public Bool bruteForce = false;
 
 	/// <summary>
 	/// Create AtlasHandle::image
 	/// </summary>
-	public BOOL createImage = false;
+	public Bool createImage = false;
 
 	/// <summary>
 	/// Rotate charts to the axis of their convex hull.
 	/// </summary>
-	public BOOL rotateChartsToAxis = true;
+	public Bool rotateChartsToAxis = true;
 
 	/// <summary>
 	/// Rotate charts to improve packing.
 	/// </summary>
-	public BOOL rotateCharts = true;
+	public Bool rotateCharts = true;
 }
 
 /// <summary> Progress tracking.  </summary>
@@ -176,13 +179,17 @@ public enum ProgressCategory
 
 
 [UnmanagedFunctionPointer(Cdecl)]
-public delegate BOOL ProgressFunc(ProgressCategory category, int progress, IntPtr userData);
+public delegate Bool ProgressFunc(ProgressCategory category, int progress, IntPtr userData);
 
 [UnmanagedFunctionPointer(Cdecl)]
 public delegate IntPtr ReallocFunc(IntPtr addr, IntPtr size);
 
 [UnmanagedFunctionPointer(Cdecl)]
 public delegate void FreeFunc(IntPtr addr);
+
+//typedef void (*StringFunc)(const char* formattedContent, int strLen);
+[UnmanagedFunctionPointer(Cdecl)]
+public delegate void StringFunc(IntPtr LPStr, int strLen);
 
 public static class XAtlasAPI
 {
@@ -210,7 +217,7 @@ public static class XAtlasAPI
 	internal static extern void PackCharts(IntPtr atlas, in PackOptions packOptions);
 
 	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasGenerate")]
-	internal static extern void Generate(IntPtr atlas,in ChartOptions chartOptions, in PackOptions packOptions);
+	internal static extern void Generate(IntPtr atlas, in ChartOptions chartOptions, in PackOptions packOptions);
 
 	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasSetProgressCallback")]
 	internal static extern void SetProgressCallback(IntPtr atlas, ProgressFunc progressFunc, IntPtr progressUserData);
@@ -218,8 +225,8 @@ public static class XAtlasAPI
 	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasSetAlloc")]
 	public static extern void SetAlloc(ReallocFunc reallocFunc, FreeFunc freeFunc);
 
-	[DllImport(DLL, CallingConvention = Cdecl, EntryPoint = "xatlasSetPrint")]
-	public static extern void SetPrint(IntPtr printFuncPtr, BOOL verbose);
+	[DllImport("LogWrapper", CallingConvention = Cdecl, EntryPoint = "SetPrintFormatted")]
+	public static extern int SetPrint(StringFunc printFuncPtr, Bool verbose);//int SetPrintFormatted(StringFunc func, bool verbose);
 
 	[DllImport(DLL, CallingConvention = Cdecl, CharSet = CharSet.Ansi, EntryPoint = "xatlasAddMeshErrorString")]
 	public static extern string AddMeshErrorString(AddMeshError error);

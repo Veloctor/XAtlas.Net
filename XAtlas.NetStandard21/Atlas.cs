@@ -63,9 +63,16 @@ namespace XAtlas.Net
 		/// <summary> You should only read it unless you know what are you doing </summary>
 		public ref Atlas Output => ref new Ptr<Atlas>(Handle).Target;
 
+		/// <summary>
+		/// Add a mesh to the atlas. MeshDecl 
+		/// </summary>
+		/// <param name="meshDecl">data is copied, so it can be freed after AddMesh returns.</param>
 		public AddMeshError AddMesh(MeshDecl meshDecl, uint meshCountHint = 0) =>
 			XAtlasAPI.AddMesh(Handle, meshDecl, meshCountHint);
 
+		/// <summary>
+		/// Wait for AddMesh async processing to finish. ComputeCharts / Generate call this internally.
+		/// </summary>
 		public void AddMeshJoin() =>
 			XAtlasAPI.AddMeshJoin(Handle);
 

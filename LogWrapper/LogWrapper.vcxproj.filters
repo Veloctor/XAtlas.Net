@@ -18,18 +18,10 @@
     <ClInclude Include="LogWrapper.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="xatlas.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LogWrapper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\..\Github\xatlas\build\vs2022\bin\x86_64\Release\xatlas.lib">
-      <Filter>头文件</Filter>
-    </Library>
   </ItemGroup>
 </Project>
