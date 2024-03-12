@@ -8,7 +8,7 @@
 
 StringFunc logFunc = nullptr;
 
-const auto dllName = L"xatlas.dll";
+const auto dllName = L"xatlas";
 const auto xatlasSetPrintName = "xatlasSetPrint";
 
 // xatlasPrintFunc的定义
@@ -20,7 +20,7 @@ static xatlasSetPrintAction resolveXAtlasPrintAction()
 {
     HMODULE hModule = LoadLibrary(dllName);
     if (hModule == NULL)// 处理加载DLL失败的情况
-        return (xatlasSetPrintAction)1;
+        return NULL;
     auto pfnxatlasSetPrint = (xatlasSetPrintAction)GetProcAddress(hModule, xatlasSetPrintName);
     if (pfnxatlasSetPrint == NULL) {// 处理获取函数地址失败的情况
         FreeLibrary(hModule);
@@ -53,13 +53,8 @@ int SetPrintFormatted(StringFunc func, bool verbose) {
 	logFunc = func;
     FormatAndLog("setting message log function 0x%p\n", func);
     auto xatSetPrint = resolveXAtlasPrintAction();
-    if ((size_t)xatSetPrint == 1)
-    {
-        FormatAndLog("failed to load xatlas.dll\n");
-        return -2;
-    }
     if (xatSetPrint == nullptr) {
-        FormatAndLog("failed to resolve xatlasSetPrint from xatlas.dll\n");
+        FormatAndLog("failed to resolve xatlasSetPrint from xatlas.dll, LastError: %d\n", GetLastError());
         return -3;
     }
     xatSetPrint(&FormatAndLog, verbose);
